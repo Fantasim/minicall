@@ -27,51 +27,64 @@ export default class ScheduledTask {
   private _options = (): IOption => this.__options
   private _timeSlot = () => this._options().timeSlot
   private _onReached = (daySecond: number) => this._options().onReached(daySecond)
-  private _isNoSlot = () => typeof this._timeSlot() === 'number'
+  private _isSlotValue = () => typeof this._timeSlot() === 'number'
 
-  //private actions
   private _onRunned = () => {
     const { onRunned } = this._options()
     onRunned && onRunned()
   }
 
-  private _runNoSlot = () => Queue.stack(async () => {
+  private _run = () => {
+
+    const withSlots = async () => {
       await this._onReached(countTodaySecond())
       this._onRunned()
-  })
-  
+    }
 
-  private _runWithSlot = async () => {
-    await this._onReached(countTodaySecond())
-    this._onRunned()
+    const withValue = () => {
+      Queue.stack(async () => {
+        await this._onReached(countTodaySecond())
+        this._onRunned()
+      })
+    }
+  
+    return { withSlots, withValue }
   }
+
+  private _start = () => {
+
+    const withSlots = () => {
+
+      const pushScheduledDailyReset = () => {
+        const delay = ((24 * 3600) - countTodaySecond()) * 1000
+        this._timeouts.push(setTimeout(this.start, delay))
+      }
+
+      if (!this._isSlotValue()){
+      
+        this._clearAllTimeoutSlots()
+        const slots = this._timeSlot() as number[]
+  
+        slots.filter((value: number) => value >= countTodaySecond()).map((value: number) => {
+          
+          const delay = (value - countTodaySecond()) * 1000
+          this._timeouts.push(setTimeout(this._onReached, delay))
+  
+        })
+        
+        pushScheduledDailyReset()
+      }
+    }
+
+    const withValue = () => this.__interval = setInterval(this._run().withValue, this._timeSlot() as number)
+
+    return { withSlots, withValue }
+  } 
 
   private _clearAllTimeoutSlots = () => this._timeouts.map((v: any) => clearTimeout(v))
 
-  private _startWithSlot = () => {
-    if (!this._isNoSlot()){
-      
-      this._clearAllTimeoutSlots()
-      const slots = this._timeSlot() as number[]
-
-      slots.filter((value: number) => value > (countTodaySecond() + 1)).map((value: number) => {
-        
-        const delay = (value - countTodaySecond()) * 1000
-        this._timeouts.push(setTimeout(this._runWithSlot, delay))
-
-      })
-
-      const delay = ((24 * 3600) - countTodaySecond()) * 1000
-      this._timeouts.push(setTimeout(this._startWithSlot, delay))
-
-    }
-  }
-
-
-  private _startNoSlot = () => this.__interval = setInterval(this._runNoSlot, this._timeSlot() as number)
-
   //public actions
-  public start = () => this._isNoSlot() ? this._startNoSlot() : this._startWithSlot()
+  public start = () => this._isSlotValue() ? this._start().withValue() : this._start().withSlots()
 
-  public stop = () => this._isNoSlot() ? clearInterval(this.__interval) : this._clearAllTimeoutSlots()
+  public stop = () => this._isSlotValue() ? clearInterval(this.__interval) : this._clearAllTimeoutSlots()
 }
