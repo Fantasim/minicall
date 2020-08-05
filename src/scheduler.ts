@@ -4,92 +4,74 @@ import { countTodaySecond } from './utils'
 const Queue = new TaskQueue()
 
 export interface IOption {
-    id: string
-    timeSlots?: number[],
+    timeSlot?: number[] | number,
     onReached: (daySecond: number) => any 
     onRunned?: () => any,
-    checkDelayMS?: number,
-    logger?: boolean
 }
 
 const DEFAULT_OPTIONS: any = {
-    timeSlots: [],
+    timeSlot: 10 * 1000,
     onRunned: () => null,
-    checkDelayMS: 60 * 1000,
-    logger: true
 }
 
 export default class ScheduledTask {
 
-  private __doneSlot: number[] = []
   private __interval: any = null
-  private __lastRunningTime: Date | null = null
   private __options = DEFAULT_OPTIONS
+  private _timeouts: any[] = []
 
   constructor(options: IOption){
     this.__options = Object.assign({}, this._options(), options)
-    this._init()
   }
 
-  //initialization
-  private _init = () => {
-    for (let i = 0; this._timeSlots()[i] < countTodaySecond(); i++)
-      this._doneSlot().push(this._timeSlots()[i])
-  }
-
-  //setters
-  private _setLastRunningDate = () => this.__lastRunningTime = new Date()
-  private _resetDoneSlotIfRequired = () => {
-      if (this._lastRunningTime()){
-          if (new Date().getDate() != this._lastRunningTime()?.getDate()){
-            this._resetDoneSlot()
-          }
-      }
-  }
-  private _resetDoneSlot = () => this._doneSlot().splice(0, this._doneSlot().length)
-
-  //getters
-  private _lastRunningTime = () => this.__lastRunningTime
-  private _ID = () => this._options().id
   private _options = (): IOption => this.__options
-  private _doneSlot = (): number[] => this.__doneSlot
-  private _timeSlots = (): number[] => this._options().timeSlots || []
+  private _timeSlot = () => this._options().timeSlot
   private _onReached = (daySecond: number) => this._options().onReached(daySecond)
-  private _checkDelay = () => this._options().checkDelayMS
-  private _isLoggerEnabled = () => this._options().logger
-  private _isNoSlot = () => this._timeSlots().length === 0
+  private _isNoSlot = () => typeof this._timeSlot() === 'number'
 
   //private actions
   private _onRunned = () => {
     const { onRunned } = this._options()
     onRunned && onRunned()
-   }
+  }
 
-  private _checkout = async () => {
-    const todaySeconds = countTodaySecond()
-    const max = this._timeSlots()[this._doneSlot().length] || ((3600 * 24) + 1)
+  private _runNoSlot = () => Queue.stack(async () => {
+      await this._onReached(countTodaySecond())
+      this._onRunned()
+  })
+  
 
-    this._isLoggerEnabled() && console.log(`[CHECKOUT] ${this._ID()} - current: ${todaySeconds}; next: ${max}`)
-    if (todaySeconds > max){
-      this._doneSlot().push(max)
-      Queue.stack(async () => {
-        await this._onReached(max)
-        this._isLoggerEnabled() && console.log(`[RUNNED] ${this._ID()} has just been executing a task scheduled.`)        
+  private _runWithSlot = async () => {
+    await this._onReached(countTodaySecond())
+    this._onRunned()
+  }
+
+  private _clearAllTimeoutSlots = () => this._timeouts.map((v: any) => clearTimeout(v))
+
+  private _startWithSlot = () => {
+    if (!this._isNoSlot()){
+      
+      this._clearAllTimeoutSlots()
+      const slots = this._timeSlot() as number[]
+
+      slots.filter((value: number) => value > (countTodaySecond() + 1)).map((value: number) => {
+        
+        const delay = (value - countTodaySecond()) * 1000
+        this._timeouts.push(setTimeout(this._runWithSlot, delay))
+
       })
+
+      const delay = ((24 * 3600) - countTodaySecond()) * 1000
+      this._timeouts.push(setTimeout(this._startWithSlot, delay))
+
     }
   }
 
-  private run = async () => {
-    this._resetDoneSlotIfRequired()
-    this._setLastRunningDate()
 
-    Queue.stack(async () => {
-      this._isNoSlot() ? await this._onReached(countTodaySecond()) : await this._checkout()
-      this._onRunned()
-    })
-  }
+  private _startNoSlot = () => this.__interval = setInterval(this._runNoSlot, this._timeSlot() as number)
 
   //public actions
-  public start = () => this.__interval = setInterval(this.run, this._checkDelay())
-  public stop = () => clearInterval(this.__interval)
+  public start = () => this._isNoSlot() ? this._startNoSlot() : this._startWithSlot()
+
+  public stop = () => this._isNoSlot() ? clearInterval(this.__interval) : this._clearAllTimeoutSlots()
 }
