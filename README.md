@@ -1,4 +1,4 @@
-# Minimalistic JS callback scheduler
+# Minimalistic JS callback scheduler 🛵
 
 Pure JS, no dependencies.
 
