@@ -1,4 +1,4 @@
-# Minimalistic JS callback scheduler
+# Minimalistic JS callback scheduler 🛵
 
 Pure JS, no dependencies.
 
@@ -16,6 +16,11 @@ const task = new ScheduledTask({
     onReached: async () => await someSendingFunction('Hey this message has been sent from a scheduled task!'),
     onRunned: () => console.log('onReached has been called 🎉'),
 })
+
+
+task.start()
+
+/* task.stop() */
 ```
 
 ## ScheduledTask
