@@ -9,9 +9,9 @@ yarn add minicall
 
 ## Quick start
 ```ts
-import { ScheduledTask } from 'minicall'
+import minicall from 'minicall'
 
-const task = new ScheduledTask({
+const task = new minicall({
     timeSlot: [12 * 3600, 20 * 3600], //trigger the onReachedCallback every day, at 12 noon and 20pm 
     onReached: async () => await someSendingFunction('Hey this message has been sent from a scheduled task!'),
     onRunned: () => console.log('onReached has been called 🎉'),
