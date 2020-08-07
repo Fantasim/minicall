@@ -1,5 +1,5 @@
 import { expect } from 'chai';
-import { ScheduledTask } from '../index'
+import minicall from '../index'
 import { countTodaySecond } from '../src/utils'
 
 const main = () => {
@@ -8,7 +8,7 @@ const main = () => {
 
         it('3 slots', async () => {
             let i = 0;
-            const task = new ScheduledTask({
+            const task = new minicall({
                 timeSlot: [countTodaySecond() + 2, countTodaySecond() + 3, countTodaySecond() + 3],
                 onReached: () => i++
             })
@@ -21,7 +21,7 @@ const main = () => {
 
         it('NO slots', async () => {
             let i = 0;
-            const task = new ScheduledTask({
+            const task = new minicall({
                 timeSlot: 1000,
                 onReached: () => i++
             })

@@ -1,5 +1,3 @@
 import ScheduledTask from './src/scheduler'
 
-export {
-    ScheduledTask
-}
+export default ScheduledTask
