@@ -1,3 +1,7 @@
-import ScheduledTask from './src/scheduler'
+import TaskScheduler from './src/scheduler-v2'
+import { secondsToTimeString } from './src/utils'
 
-export default ScheduledTask
+export {
+    secondsToTimeString
+} 
+export default TaskScheduler
