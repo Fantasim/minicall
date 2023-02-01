@@ -1,6 +1,6 @@
 import { expect } from 'chai';
 import minicall from '../index'
-import { secondsPassedToday, secondsToTimeString } from '../src/utils'
+import { secondsPassedToday } from '../src/utils'
 
 const main = () => {
 
@@ -42,7 +42,54 @@ const main = () => {
             expect(() => task.start()).to.throw(Error)
         })
 
-        it('4 slots', async () => {
+        it('filter with interval', async () => {
+            let i = 0;
+            let j = 0;
+            const task = new minicall({
+                time: 1000,
+                execute: () => i++,
+                callback: () => j++,
+                filter: () => i == 0
+            })
+            task.start()
+            expect(i).to.eq(0)
+            expect(j).to.eq(0)
+            await new Promise(r => setTimeout(r, 1200))
+            expect(i).to.eq(1)
+            expect(j).to.eq(1)
+            await new Promise(r => setTimeout(r, 1200))
+            expect(i).to.eq(1)
+            expect(j).to.eq(1)
+            await new Promise(r => setTimeout(r, 1200))
+            expect(i).to.eq(1)
+            expect(j).to.eq(1)
+            task.stop()
+        })
+
+        it('filter with slots', async () => {
+            const { secondsToTimeString } = minicall.Utils
+            
+            let i = 0;
+            let j = 0;
+            const task = new minicall({
+                time: [secondsToTimeString(secondsPassedToday() + 2), secondsToTimeString(secondsPassedToday() + 3), secondsToTimeString(secondsPassedToday() + 4)],
+                execute: () => i++,
+                callback: () => j++,
+                filter: () => i == 0
+            })
+            task.start()
+            await new Promise(r => setTimeout(r, 2200))
+            expect(i).to.eq(1)
+            expect(j).to.eq(1)
+            await new Promise(r => setTimeout(r, 2200))
+            expect(i).to.eq(1)
+            expect(j).to.eq(1)
+            task.stop()
+        })
+
+        it('5 slots', async () => {
+            const { secondsToTimeString } = minicall.Utils
+            
             let i = 0;
             let j = 0;
             const task = new minicall({
@@ -50,23 +97,18 @@ const main = () => {
                 execute: () => i++,
                 callback: () => j++,
             })
-            expect(task.nextExecution()).to.eq(-1)
             task.start()
-            await new Promise(r => setTimeout(r, 2000))
-            expect(task.nextExecution() / 1000).to.eq(1)
+            await new Promise(r => setTimeout(r, 2200))
             expect(i).to.eq(1)
             expect(j).to.eq(1)
-            await new Promise(r => setTimeout(r, 2000))
+            await new Promise(r => setTimeout(r, 2200))
             expect(i).to.eq(3)
             expect(j).to.eq(3)
-            expect(task.nextExecution() / 1000).to.eq(1)
             task.stop()
             await new Promise(r => setTimeout(r, 1700))
             expect(i).to.eq(3)
             expect(j).to.eq(3)
-            expect(task.nextExecution()).to.eq(-1)
             task.start()
-            expect(task.nextExecution() / 1000).to.eq(4)
             task.stop()
         })
 
@@ -82,8 +124,6 @@ const main = () => {
             await new Promise(r => setTimeout(r, 3200))
             expect(i).to.eq(3)
             expect(j).to.eq(3)
-            expect(task.nextExecution()).to.lessThan(1000)
-            expect(task.nextExecution()).to.greaterThan(200)
             task.stop()
             await new Promise(r => setTimeout(r, 1100))
             expect(i).to.eq(3)

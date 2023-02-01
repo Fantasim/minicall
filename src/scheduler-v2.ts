@@ -1,9 +1,10 @@
 import { convertTimeToSeconds, nextGreaterValue, secondsPassedToday, smallestValue, secondsToTimeString } from "./utils"
 
 interface IOption {
-    time: string[] | number,
-    execute: () => any,
+    time: string[] | number
+    execute: () => any
     callback?: () => any
+    filter?: () => boolean
 }
 
 export default class TaskScheduler {
@@ -78,11 +79,13 @@ start = () => {
 
     const execute = async () => {
         this._lastExecutionMS = new Date().getTime()
-        await this.__options.execute()
-        if (this.__options.callback){
-            this.__options.callback()
+        if (!this.__options.filter || (this.__options.filter && this.__options.filter())){
+            await this.__options.execute()
+            if (this.__options.callback){
+                this.__options.callback()
+            }
+            setNextCallIfRequired()
         }
-        setNextCallIfRequired()
     }
 
     const setNextCallIfRequired = () => {
