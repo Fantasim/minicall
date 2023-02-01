@@ -1,4 +1,4 @@
-import { convertTimeToSeconds, nextGreaterValue, secondsPassedToday, smallestValue } from "./utils"
+import { convertTimeToSeconds, nextGreaterValue, secondsPassedToday, smallestValue, secondsToTimeString } from "./utils"
 
 interface IOption {
     time: string[] | number,
@@ -7,6 +7,10 @@ interface IOption {
 }
 
 export default class TaskScheduler {
+
+  static Utils = {
+    secondsToTimeString
+  } 
 
   private __interval: any = null
   private __options: IOption
