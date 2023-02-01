@@ -1,6 +1,16 @@
-# Minimalistic JS callback scheduler 🛵
+# Minimalistic JS task scheduler 🛵
 
-Pure JS, no dependencies.
+*Extremely **minimalistic** and **simple** task scheduler built in just 2 hours due to frustration with the bugs, dependencies, and heavy bundle weight of the current popular task scheduler libraries in JavaScript.* 😤
+
+This library is very humble and doesn't compete in terms of features, but it is simple 🎈:
+
+- Supports both **browser** and **node** environments.
+- Only requires **two** simple **parameters**, with no useless ones.
+- Has **no dependencies** and is lightweight, with a size of only **1.6kB**. 🕊️
+- No unexpected schedule, no bugs, no nonsense.
+
+
+<br />
 
 ## Installation
 ```sh
@@ -8,27 +18,28 @@ yarn add minicall
 ```
 
 ## Quick start
+
 ```ts
 import minicall from 'minicall'
 
 const task = new minicall({
-    timeSlot: [12 * 3600, 20 * 3600], //trigger the onReachedCallback every day, at 12 noon and 20pm 
-    onReached: async () => await someSendingFunction('Hey this message has been sent from a scheduled task!'),
-    onRunned: () => console.log('onReached has been called 🎉'),
+    time: ["12:34:56", "22:22:22"], //Based on UTC time 
+    execute: () => console.log('task to execute'),
 })
 
-
 task.start()
-
-/* task.stop() */
 ```
 
-## ScheduledTask
+### With a filter
 
-- **Options**:
+```ts
+import minicall from 'minicall'
 
-    | Name | Type | Description | Default | Required
-    | -- | -- | -- | -- | -- |
-    | timeSlot |`number[] or number` | If an array, it has to be an `Array of seconds` of a day where the `onReached` callback is going to be called at. If it's a number the callback is going to be called at every `timeSlot` value | `10,000` (10 seconds) | NO
-    | onReached |`(daySecond: number) => any` | Callback called when the seconds of the day reach reach one of the targets set in `timeSlot` | `undefined` | YES 
-    | onRunned |`() => any` | Callback called when onReached has been called | `() => null` | NO 
+const task = new minicall({
+    time: ["03:00:00"],
+    execute: () => console.log('task to execute'),
+    filter: (): boolean => new Date().getDay() === 1 //only on Monday.
+})
+
+task.start()
+```
