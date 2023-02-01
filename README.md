@@ -38,7 +38,7 @@ import minicall from 'minicall'
 const task = new minicall({
     time: ["03:00:00"],
     execute: () => console.log('task to execute'),
-    filter: (): boolean => new Date().getDay() === 1 //only on Monday.
+    filter: (): boolean => [1, 3, 5].includes(new Date().getDay()) //only on Monday, Wednesday and Friday.
 })
 
 task.start()
