@@ -45,10 +45,10 @@ export default class TaskScheduler {
 
     const now = secondsPassedToday()
     let next = nextGreaterValue(this._time(), now)
-    
     if (next == undefined){
         const beforeMidnight = 86_400 - now
         next = beforeMidnight + (smallestValue(this._time()) as number)
+        return next
     }
     return next - now
  }

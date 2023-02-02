@@ -1,3 +1,8 @@
+//wrapper used for testing purposes
+export const dateNow = () => {
+  return new Date()
+}
+
 // convert the number of seconds passed today to a string of the form HH:MM:SS
 export function secondsToTimeString(seconds: number): string {
   const hours = Math.floor(seconds / 3600);
@@ -32,7 +37,7 @@ export function nextGreaterValue(arr: number[], num: number): number | undefined
 
 //thanks gpt
 export function secondsPassedToday() {
-    let now = new Date();
+    let now = dateNow()
     let hours = now.getUTCHours();
     let minutes = now.getUTCMinutes();
     let seconds = now.getUTCSeconds();
