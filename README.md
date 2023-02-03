@@ -23,6 +23,8 @@ yarn add minicall
 
 ## Quick start
 
+### Basic
+
 ```ts
 import minicall from 'minicall'
 
